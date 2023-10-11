@@ -1,9 +1,9 @@
 // XML Parser
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct Element {
-    name: String, // Name of the Tag
+    name: String,                      // Name of the Tag
     attributes: Vec<(String, String)>, // (identifier, value)
-    children :Vec<Element>,
+    children: Vec<Element>,
 }
 
 type ParseResult<'a, Output> = Result<(&'a str, Output), &'a str>;
@@ -13,7 +13,7 @@ trait Parser<'a, Output> {
 }
 
 impl<'a, F, Output> Parser<'a, Output> for F
-where 
+where
     F: Fn(&'a str) -> ParseResult<Output>,
 {
     fn parse(&self, input: &'a str) -> ParseResult<'a, Output> {
@@ -28,14 +28,10 @@ fn the_letter_a(input: &str) -> Result<(&str, ()), &str> {
     }
 }
 
-
 // Returns a closure function, rather than the text
-fn match_literal<'a>(expected: &'static str) -> impl Parser<'a, ()>
-{
+fn match_literal<'a>(expected: &'static str) -> impl Parser<'a, ()> {
     move |input: &'a str| match input.get(0..expected.len()) {
-        Some(next) if next == expected => {
-            Ok((&input[expected.len()..], ()))
-        }
+        Some(next) if next == expected => Ok((&input[expected.len()..], ())),
         _ => Err(input),
     }
 }
@@ -53,8 +49,7 @@ fn identifier(input: &str) -> ParseResult<String> {
     while let Some(next) = chars.next() {
         if next.is_alphanumeric() || next == '-' {
             matched.push(next);
-        }
-        else {
+        } else {
             break;
         }
     }
@@ -72,14 +67,16 @@ fn identifier(input: &str) -> ParseResult<String> {
 //     move |input| parser(input).map(|(next_input, result)| (next_input, map_fn(result)))
 // }
 
-fn pair<'a, P1, P2, R1,R2>(parser1: P1, parser2: P2) -> impl Parser<'a, (R1, R2)>
+fn pair<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, (R1, R2)>
 where
     P1: Parser<'a, R1>,
     P2: Parser<'a, R2>,
 {
     move |input| {
         parser1.parse(input).and_then(|(next_input, result1)| {
-            parser2.parse(next_input).map(|(last_input, result2)| (last_input, (result1, result2)))
+            parser2
+                .parse(next_input)
+                .map(|(last_input, result2)| (last_input, (result1, result2)))
         })
     }
 }
@@ -97,8 +94,11 @@ where
     P: Parser<'a, A>,
     F: Fn(A) -> B,
 {
-    move |input|
-        parser.parse(input).map(|(next_input, result)| (next_input, map_fn(result)))
+    move |input| {
+        parser
+            .parse(input)
+            .map(|(next_input, result)| (next_input, map_fn(result)))
+    }
 }
 
 fn left<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, R1>
@@ -119,15 +119,14 @@ where
 
 fn one_or_more<'a, P, A>(parser: P) -> impl Parser<'a, Vec<A>>
 where
-    P: Parser<'a, A>
+    P: Parser<'a, A>,
 {
     move |mut input| {
         let mut result = Vec::new();
         if let Ok((next_input, first_item)) = parser.parse(input) {
             input = next_input;
             result.push(first_item);
-        }
-        else {
+        } else {
             return Err(input);
         }
 
@@ -157,7 +156,7 @@ where
 
 fn one_or_more<'a, P, A>(parser: P) -> impl Parser<'a, Vec<A>>
 where
-    P: Parser<'a, A>
+    P: Parser<'a, A>,
 {
     map(pair(parser, zero_or_more(parser)), |(head, mut tail)| {
         tail.insert(0, head);
@@ -165,13 +164,15 @@ where
     })
 }
 
-
 #[test]
 fn literal_parser() {
     let parse_joe = match_literal("Hello Joe!");
     assert_eq!(Ok(("", ())), parse_joe.parse("Hello Joe!"));
 
-    assert_eq!(Ok((" Hello Robert!", ())), parse_joe.parse("Hello Joe! Hello Robert!"));
+    assert_eq!(
+        Ok((" Hello Robert!", ())),
+        parse_joe.parse("Hello Joe! Hello Robert!")
+    );
 
     assert_eq!(Err("Hello Mike!"), parse_joe.parse("Hello Mike!"));
 }
@@ -210,8 +211,9 @@ fn pair_combinators() {
 #[test]
 fn right_combinator() {
     let tag_opener = right(match_literal("<"), identifier);
-    
-    assert_eq!(Ok(("/>", "my-first-element".to_string())),
+
+    assert_eq!(
+        Ok(("/>", "my-first-element".to_string())),
         tag_opener.parse("<my-first-element/>")
     );
 
@@ -235,5 +237,4 @@ fn zero_or_more_combinator() {
     assert_eq!(Ok(("", vec![(), (), ()])), parser.parse("hahaha"));
     assert_eq!(Ok(("ahah", vec![])), parser.parse("ahah"));
     assert_eq!(Ok(("", vec![])), parser.parse(""));
-
 }
