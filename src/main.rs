@@ -1,3 +1,6 @@
+use zen::get_tok;
+
 fn main() {
-    println!("Hello, Rust!");
+    println!("Hi! Starting now......");
+    println!("{:?}", get_tok());
 }
