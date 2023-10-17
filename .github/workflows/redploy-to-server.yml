@@ -1,0 +1,28 @@
+name: Redeploy Backend to ensure that zen package is up-to-date!
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+    # - run: |
+    #     curl -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" \
+    #       -H "Accept: application/vnd.github.everest-preview+json" \
+    #       -H "Content-Type: application/json" \
+    #       https://api.github.com/repos/docker-sstc/docker-notify/actions/workflows/main.yml/dispatches \
+    #       --data '{"ref": "master"}'
+    - uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.PAT_TOKEN }}
+        script: |
+          await github.rest.actions.createWorkflowDispatch({
+            owner: 'zenlang-rs',
+            repo: 'backend',
+            workflow_id: 'deploy.yml',
+            ref: 'main'
+          })

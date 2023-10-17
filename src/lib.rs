@@ -1,5 +1,6 @@
 /// Just returns the same code as Ok!
 /// TODO implement later
-pub fn compile(code: String) -> Result<String, String> {
+pub fn compile(mut code: String) -> Result<String, String> {
+    code.push_str("\nBhag yha se!!");
     Ok(code)
 }
