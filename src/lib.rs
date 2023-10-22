@@ -6,5 +6,5 @@ pub fn compile(mut code: String) -> Result<String, String> {
 }
 
 pub fn get_version() -> Result<String, &'static str> {
-    Ok(String::from("testv2"))
+    Ok(String::from("testv3"))
 }
