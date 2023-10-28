@@ -1,0 +1,49 @@
+```
+PARAMPARA_PRATISHTA_ANUSHASHAN
+A BOLE_TOH 10
+C BOLE_TOH INPUT_LE_LE_RE_BABA
+
+AGAR A > 3 TAB
+; Statement
+WARNA_AGAR B > 3 TAB
+; Statement
+NHI_TOH 
+; Statement
+BAS_ITNA_HI
+
+JAB_TAK_HAI_JAAN A > 3 TAB_TAK
+; Statement here!
+JAHAN
+
+PRINT_BASANTI_PRINT A
+
+
+KHATAM_TATA_BYE_BYE
+
+```
+is a toy lang (made using Rust)and 
+
+PARAMPARA_PRATISHTA_ANUSHASHAN - Start of Program
+BOLE_TOH - Initialization 
+AGAR - If Statement
+TAB - Then Statement
+WARNA_AGAR - ElseIF Statement
+NHI_TOH - Else Statement
+BAS_ITNA_HI - End of IF Statement
+INPUT_LE_LE_RE_BABA - Take Input from Console
+JAB_TAK_HAI_JAAN - While Statement
+TAB_TAK - Then Statement after While Statement
+JAHAN - End of While Statement
+PRINT_BASANTI_PRINT - Print Statement
+KHATAM_TATA_BYE_BYE - End of Program
+
+I want to make a lexer/tokenizer for the same .
+which also includes 
+Variable (Limit Data Type to f64)
+Input (Numeric) /Output
+Boolean Expressions parsing
+Arithmetic Operations (+, -, /, *, %)
+Comments(Starting with '@' Symbol) 
+
+
+Take context from @mod.rs and @token.rs for a similar lexer written for other languages.
