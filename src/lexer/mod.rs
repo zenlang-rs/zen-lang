@@ -5,7 +5,7 @@ use std::*;
 
 use nom::branch::*;
 use nom::bytes::complete::{tag, take};
-use nom::character::complete::{alpha1, alphanumeric1, char, digit1, multispace0};
+use nom::character::complete::{alpha1, alphanumeric1, char, digit1, multispace0, multispace1};
 use nom::combinator::map;
 use nom::combinator::map_res;
 use nom::multi::many0;
@@ -58,20 +58,119 @@ pub fn lex_operator(input: &[u8]) -> IResult<&[u8], Token> {
     ))(input)
 }
 // Keywords
-syntax! {start_program_keyword, "PARAMPARA_PRATISHTA_ANUSHASHAN", Token::StartProgram}
-syntax! {end_program_keyword, "KHATAM_TATA_BYE_BYE", Token::EndProgram}
+fn start_program_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?; // Skip leading spaces
+    let (input, _) = tag("PARAMPARA")(input)?;
+    let (input, _) = multispace1(input)?; // Require at least one space
+    let (input, _) = tag("PRATISHTA")(input)?;
+    let (input, _) = multispace1(input)?; // Require at least one space
+    let (input, _) = tag("ANUSHASHAN")(input)?;
+    let (input, _) = multispace0(input)?; // Skip trailing spaces
+    Ok((input, Token::StartProgram))
+}
+
+fn end_program_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("KHATAM")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("TATA")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("BYE")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("BYE")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::EndProgram))
+}
 syntax! {if_keyword, "AGAR", Token::If}
 syntax! {then_keyword, "TAB", Token::Then}
-syntax! {else_if_keyword, "WARNA_AGAR", Token::ElseIf}
-syntax! {else_keyword, "NHI_TOH", Token::Else}
-syntax! {end_if_keyword, "BAS_ITNA_HI", Token::EndIf}
-syntax! {while_keyword, "JAB_TAK_HAI_JAAN", Token::While}
-syntax! {do_keyword, "TAB_TAK", Token::Do}
-syntax! {end_while_keyword, "JAHAN", Token::EndWhile}
-syntax! {print_keyword, "PRINT_BASANTI_PRINT", Token::Print}
-syntax! {input_keyword, "INPUT_LE_LE_RE_BABA", Token::Input}
-syntax! {assign_operator, "BOLE_TOH", Token::Assign}
 
+fn else_if_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("WARNA")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("AGAR")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::ElseIf))
+}
+
+fn else_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("NHI")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("TOH")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::Else))
+}
+
+fn end_if_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("BAS")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("ITNA")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("HI")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::EndIf))
+}
+
+fn while_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("JAB")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("TAK")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("HAI")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("JAAN")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::While))
+}
+
+fn do_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("TAB")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("TAK")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::Do))
+}
+
+syntax! {end_while_keyword, "JAHAN", Token::EndWhile}
+
+fn print_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("PRINT")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("BASANTI")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("PRINT")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::Print))
+}
+
+fn input_keyword(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("INPUT")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("LE")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("LE")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("RE")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("BABA")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::Input))
+}
+
+fn assign_operator(input: &[u8]) -> IResult<&[u8], Token> {
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("BOLE")(input)?;
+    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("TOH")(input)?;
+    let (input, _) = multispace0(input)?;
+    Ok((input, Token::Assign))
+}
 pub fn lex_keyword(input: &[u8]) -> IResult<&[u8], Token> {
     alt((
         start_program_keyword,
@@ -244,17 +343,22 @@ mod tests {
 
     #[test]
     fn test_program_start_and_end() {
-        let input = b"PARAMPARA_PRATISHTA_ANUSHASHAN KHATAM_TATA_BYE_BYE";
+        let input = b"    PAPARAMPARA    PARAMPARA PRATISHTA ANUSHASHAN KHATAM TATA   BYE BYE";
         let expected_output = Ok((
             &b""[..],
-            vec![Token::StartProgram, Token::EndProgram, Token::EOF],
+            vec![
+                Token::Ident("PAPARAMPARA".to_string()),
+                Token::StartProgram,
+                Token::EndProgram,
+                Token::EOF,
+            ],
         ));
         assert_eq!(Lexer::lex_tokens(input), expected_output);
     }
 
     #[test]
     fn test_variable_initialization() {
-        let input = b"A BOLE_TOH 10";
+        let input = b"A BOLE TOH 10";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -269,7 +373,7 @@ mod tests {
 
     #[test]
     fn test_input_from_console() {
-        let input = b"C BOLE_TOH INPUT_LE_LE_RE_BABA";
+        let input = b"C BOLE TOH INPUT LE LE RE BABA";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -284,7 +388,7 @@ mod tests {
 
     #[test]
     fn test_if_statement() {
-        let input = b"AGAR A > 3 TAB PRINT_BASANTI_PRINT 3 BAS_ITNA_HI";
+        let input = b"AGAR A > 3 TAB PRINT BASANTI PRINT 3 BAS ITNA HI";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -304,7 +408,7 @@ mod tests {
 
     #[test]
     fn test_else_if_statement() {
-        let input = b"WARNA_AGAR B > 3 TAB PRINT_BASANTI_PRINT 4.8";
+        let input = b"WARNA AGAR B > 3 TAB PRINT BASANTI PRINT 4.8";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -323,7 +427,7 @@ mod tests {
 
     #[test]
     fn test_else_statement() {
-        let input = b"NHI_TOH PRINT_BASANTI_PRINT \"2\"";
+        let input = b"NHI TOH PRINT BASANTI PRINT \"2\"";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -338,7 +442,7 @@ mod tests {
 
     #[test]
     fn test_while_statement() {
-        let input = b"JAB_TAK_HAI_JAAN _12v > 3 TAB_TAK PRINT_BASANTI_PRINT \"foobar\" JAHAN";
+        let input = b"JAB TAK HAI JAAN _12v > 3 TAB TAK PRINT BASANTI PRINT \"foobar\" JAHAN";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -368,7 +472,7 @@ mod tests {
 
     #[test]
     fn test_arithmetic_operations() {
-        let input = b"Ab3 BOLE_TOH 10 + 5 - 3 * 2 / 1 % 2";
+        let input = b"Ab3 BOLE TOH 10 + 5 - 3 * 2 / 1 % 2";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -393,7 +497,7 @@ mod tests {
 
     #[test]
     fn test_logical_operations() {
-        let input = b"_A BOLE_TOH true && false || true";
+        let input = b"_A BOLE TOH true && false || true";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -421,7 +525,7 @@ mod tests {
     }
     #[test]
     fn test_combined_operations() {
-        let input = b"A_ BOLE_TOH (10 + 5 - 3) * 2 / (1 % 2) && true || false";
+        let input = b"A_ BOLE TOH (10 + 5 - 3) * 2 / (1 % 2) && true || false";
         let expected_output = Ok((
             &b""[..],
             vec![
@@ -453,7 +557,7 @@ mod tests {
     }
 
     #[test]
-    fn s_identifier_token() {
+    fn is_identifier_token() {
         let input = "_AB".as_bytes();
         let expected_output = Ok((&b""[..], vec![Token::Ident("_AB".to_string()), Token::EOF]));
         assert_eq!(Lexer::lex_tokens(input), expected_output);
