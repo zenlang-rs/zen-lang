@@ -2,58 +2,12 @@ use nom::*;
 use std::iter::Enumerate;
 use std::ops::{Range, RangeFrom, RangeFull, RangeTo};
 
-#[derive(PartialEq, Debug, Clone)]
-pub enum Token {
-    // Special tokens
-    Illegal,
-    EOF,
-
-    // Identifiers and literals
-    Ident(String),
-    Number(f64),
-    StringLiteral(String),
-    BoolLiteral(bool),
-    Comment(String),
-
-    // Operators
-    Assign,
-    Plus,
-    MinusOrNegation,
-    Multiply,
-    Divide,
-    Modulo,
-    GreaterThan,
-    GreaterThanEqual,
-    LessThan,
-    LessThanEqual,
-    Equal,
-    NotEqual,
-    Not,
-    LogicalAnd,
-    LogicalOr,
-
-    // Keywords
-    StartProgram,
-    EndProgram,
-    If,
-    Then,
-    ElseIf,
-    Else,
-    EndIf,
-    While,
-    Do,
-    EndWhile,
-    Print,
-    Input,
-    // punctuation
-    LeftParen,
-    RightParen,
-}
+use crate::lexer::token_type::TokenType;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 #[repr(C)]
 pub struct Tokens<'a> {
-    pub tok: &'a [Token],
+    pub tok: &'a [TokenType],
     pub start: usize,
     pub end: usize,
 }
@@ -92,7 +46,7 @@ impl<'a> InputTake for Tokens<'a> {
     }
 }
 
-impl InputLength for Token {
+impl InputLength for TokenType {
     #[inline]
     fn input_len(&self) -> usize {
         1
@@ -136,16 +90,16 @@ impl<'a> Slice<RangeFull> for Tokens<'a> {
 }
 
 impl<'a> InputIter for Tokens<'a> {
-    type Item = &'a Token;
-    type Iter = Enumerate<::std::slice::Iter<'a, Token>>;
-    type IterElem = ::std::slice::Iter<'a, Token>;
+    type Item = &'a TokenType;
+    type Iter = Enumerate<::std::slice::Iter<'a, TokenType>>;
+    type IterElem = ::std::slice::Iter<'a, TokenType>;
 
     #[inline]
-    fn iter_indices(&self) -> Enumerate<::std::slice::Iter<'a, Token>> {
+    fn iter_indices(&self) -> Enumerate<::std::slice::Iter<'a, TokenType>> {
         self.tok.iter().enumerate()
     }
     #[inline]
-    fn iter_elements(&self) -> ::std::slice::Iter<'a, Token> {
+    fn iter_elements(&self) -> ::std::slice::Iter<'a, TokenType> {
         self.tok.iter()
     }
     #[inline]
