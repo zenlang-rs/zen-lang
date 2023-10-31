@@ -4,10 +4,11 @@ use std::*;
 use nom::branch::*;
 use nom::bytes::complete::{tag, take};
 use nom::character::complete::{alpha1, alphanumeric1, char, digit1, multispace0, multispace1};
-use nom::combinator::map;
-use nom::combinator::map_res;
+use nom::combinator::{map, map_res, opt, recognize};
 use nom::multi::many0;
 use nom::sequence::delimited;
+use nom::sequence::pair;
+use nom::IResult;
 use nom::*;
 
 use crate::lexer::token_type::TokenType;
@@ -237,28 +238,19 @@ fn lex_string(input: &[u8]) -> IResult<&[u8], TokenType> {
 
 fn lex_ident(input: &[u8]) -> IResult<&[u8], TokenType> {
     map(
-        |i| {
-            recognize!(
-                i,
-                pair!(
-                    alt((alpha1, tag("_"))),
-                    many0_count!(alt((alphanumeric1, tag("_"))))
-                )
-            )
-        },
+        recognize(pair(
+            alt((alpha1, tag("_"))),
+            many0(alt((alphanumeric1, tag("_")))),
+        )),
         |ident: &[u8]| TokenType::Identifier(str::from_utf8(ident).unwrap().to_string()),
     )(input)
 }
 // Number parsing(float,int)
 fn lex_number(input: &[u8]) -> IResult<&[u8], TokenType> {
-    map(
-        |i| recognize!(i, pair!(digit1, opt!(pair!(char('.'), digit1)))),
-        |digit_str: &[u8]| {
-            let float_str = str::from_utf8(digit_str).unwrap();
-            let float_val = float_str.parse::<f64>().unwrap();
-            TokenType::Number(float_val)
-        },
-    )(input)
+    let (input, digit_str) = recognize(pair(digit1, opt(pair(char('.'), digit1))))(input)?;
+    let float_str = std::str::from_utf8(digit_str).unwrap();
+    let float_val = float_str.parse::<f64>().unwrap();
+    Ok((input, TokenType::Number(float_val)))
 }
 // Illegal tokens
 fn lex_illegal(input: &[u8]) -> IResult<&[u8], TokenType> {
@@ -303,4 +295,3 @@ fn lex_token(input: &[u8]) -> IResult<&[u8], TokenType> {
 pub fn lex_tokens(input: &[u8]) -> IResult<&[u8], Vec<TokenType>> {
     many0(delimited(multispace0, lex_token, multispace0))(input)
 }
-

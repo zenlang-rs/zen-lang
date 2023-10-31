@@ -1,4 +1,4 @@
-use zen::lexer::{token_type::TokenType, lexer_util::Lexer};
+use zen::lexer::{lexer_util::Lexer, token_type::TokenType};
 
 #[test]
 fn test_lex_tokens() {

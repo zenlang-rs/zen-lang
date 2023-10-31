@@ -110,11 +110,11 @@ impl<'a> InputIter for Tokens<'a> {
         self.tok.iter().position(predicate)
     }
     #[inline]
-    fn slice_index(&self, count: usize) -> Option<usize> {
+    fn slice_index(&self, count: usize) -> Result<usize, Needed> {
         if self.tok.len() >= count {
-            Some(count)
+            Ok(count)
         } else {
-            None
+            Err(Needed::Unknown)
         }
     }
 }
