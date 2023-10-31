@@ -2,6 +2,7 @@ use std::process;
 use std::{env, fs, io, io::Write};
 
 pub mod lexer;
+pub mod parser;
 use crate::lexer::lexer_util::Lexer;
 
 fn main() {
