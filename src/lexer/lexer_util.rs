@@ -3,11 +3,13 @@ use std::*;
 
 use nom::branch::*;
 use nom::bytes::complete::{tag, take};
-use nom::character::complete::{alpha1, alphanumeric1, char, digit1, multispace0, multispace1, space0};
+use nom::character::complete::{
+    alpha1, alphanumeric1, char, digit1, multispace0, multispace1, space0,
+};
 use nom::combinator::{map, map_res, opt, recognize, value};
 use nom::multi::many0;
-use nom::sequence::{delimited, preceded};
 use nom::sequence::pair;
+use nom::sequence::{delimited, preceded};
 use nom::IResult;
 use nom::*;
 

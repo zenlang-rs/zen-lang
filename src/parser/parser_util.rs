@@ -3,10 +3,10 @@ use nom::error::{Error, ErrorKind};
 use nom::multi::many0;
 use nom::sequence::{preceded, tuple};
 use nom::{error_position, IResult};
-use zen::lexer::token_type::TokenType;
-use zen::lexer::tokens::Tokens;
 
 use super::ast::*;
+use crate::lexer::token_type::TokenType;
+use crate::lexer::tokens::Tokens;
 use nom;
 use nom::bytes::complete::take;
 use nom::combinator::{map, opt, peek, verify};
@@ -105,8 +105,9 @@ fn parse_statement(input: Tokens) -> IResult<Tokens, Statement> {
 
     Ok((remaining_tokens, statement))
 }
+
 fn parse_expression_statement(input: Tokens) -> IResult<Tokens, Statement> {
-    map(parse_expr, |expr| Statement::Expression(expr))(input)
+    map(parse_expr, Statement::Expression)(input)
 }
 
 fn parse_program_start(input: Tokens) -> IResult<Tokens, Statement> {
@@ -125,7 +126,7 @@ fn tag_token(token: TokenType) -> impl Fn(Tokens) -> IResult<Tokens, Tokens> {
             Ok((remaining_tokens, first_token))
         } else {
             Err(nom::Err::Error(nom::error::Error {
-                input: input,
+                input,
                 code: nom::error::ErrorKind::Tag,
             }))
         }
