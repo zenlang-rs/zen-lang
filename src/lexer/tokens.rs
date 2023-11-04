@@ -12,6 +12,16 @@ pub struct Tokens<'a> {
     pub end: usize,
 }
 
+impl<'a> Tokens<'a> {
+    pub fn new(vec: &'a [TokenType]) -> Self {
+        Tokens {
+            tok: vec,
+            start: 0,
+            end: vec.len(),
+        }
+    }
+}
+
 impl<'a> InputLength for Tokens<'a> {
     #[inline]
     fn input_len(&self) -> usize {

@@ -6,7 +6,6 @@ fn test_lex_tokens() {
     let expected = Ok((
         &b""[..],
         vec![
-            // Token::Comment("This is a comment".to_string()),
             TokenType::Identifier("myVar".to_string()),
             TokenType::Number(123.0),
             TokenType::BooleanLiteral(true),
@@ -20,7 +19,6 @@ fn test_lex_tokens() {
     let expected = Ok((
         &b""[..],
         vec![
-            // Token::Comment("Another comment".to_string()),
             TokenType::Identifier("anotherVar123".to_string()),
             TokenType::Number(0.0),
             TokenType::BooleanLiteral(false),
@@ -153,13 +151,7 @@ fn test_while_statement() {
 #[test]
 fn test_comment() {
     let input = b"@ This is a comment\n";
-    let expected_output = Ok((
-        &b""[..],
-        vec![
-            TokenType::Comment(" This is a comment".to_string()),
-            TokenType::Eof,
-        ],
-    ));
+    let expected_output = Ok((&b""[..], vec![TokenType::Eof]));
     assert_eq!(Lexer::lex_tokens(input), expected_output);
 }
 
@@ -256,5 +248,26 @@ fn is_identifier_token() {
         &b""[..],
         vec![TokenType::Identifier("_AB".to_string()), TokenType::Eof],
     ));
+    assert_eq!(Lexer::lex_tokens(input), expected_output);
+}
+
+#[test]
+fn test_lex_newline() {
+    let input = b"A BOLE TOH 10\nB BOLE TOH 20\n";
+    let expected_output = Ok((
+        &b""[..],
+        vec![
+            TokenType::Identifier("A".to_string()),
+            TokenType::Assign,
+            TokenType::Number(10.0),
+            TokenType::EndOfStatement,
+            TokenType::Identifier("B".to_string()),
+            TokenType::Assign,
+            TokenType::Number(20.0),
+            TokenType::EndOfStatement,
+            TokenType::Eof,
+        ],
+    ));
+
     assert_eq!(Lexer::lex_tokens(input), expected_output);
 }

@@ -3,10 +3,10 @@ use std::*;
 
 use nom::branch::*;
 use nom::bytes::complete::{tag, take};
-use nom::character::complete::{alpha1, alphanumeric1, char, digit1, multispace0, multispace1};
-use nom::combinator::{map, map_res, opt, recognize};
+use nom::character::complete::{alpha1, alphanumeric1, char, digit1, multispace0, multispace1, space0};
+use nom::combinator::{map, map_res, opt, recognize, value};
 use nom::multi::many0;
-use nom::sequence::delimited;
+use nom::sequence::{delimited, preceded};
 use nom::sequence::pair;
 use nom::IResult;
 use nom::*;
@@ -274,12 +274,13 @@ fn lex_comment(input: &[u8]) -> IResult<&[u8], TokenType> {
             bytes::complete::take_until("\n"),
             bytes::complete::tag(b"\n"),
         ),
-        |s: &[u8]| TokenType::Comment(str::from_utf8(s).unwrap().to_string()),
+        |_| TokenType::Ignored, // Ignore the comment
     )(input)
 }
 
 fn lex_token(input: &[u8]) -> IResult<&[u8], TokenType> {
     alt((
+        lex_newline,
         lex_keyword,
         lex_operator,
         lex_punctuations,
@@ -292,6 +293,18 @@ fn lex_token(input: &[u8]) -> IResult<&[u8], TokenType> {
     ))(input)
 }
 
+fn lex_newline(input: &[u8]) -> IResult<&[u8], TokenType> {
+    value(TokenType::EndOfStatement, tag("\n"))(input)
+}
+
 pub fn lex_tokens(input: &[u8]) -> IResult<&[u8], Vec<TokenType>> {
-    many0(delimited(multispace0, lex_token, multispace0))(input)
+    let (remaining_input, tokens) = many0(preceded(space0, lex_token))(input)?;
+
+    // Filter out TokenType::Ignored tokens
+    let tokens: Vec<_> = tokens
+        .into_iter()
+        .filter(|token| !matches!(token, TokenType::Ignored))
+        .collect();
+
+    Ok((remaining_input, tokens))
 }

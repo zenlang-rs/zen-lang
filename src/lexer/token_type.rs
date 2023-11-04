@@ -2,14 +2,15 @@
 pub enum TokenType {
     // Special tokens
     Illegal,
+    Ignored, // for comments
     Eof,
+    EndOfStatement,
 
     // Identifiers and literals
     Identifier(String),
     Number(f64),
     StringLiteral(String),
     BooleanLiteral(bool),
-    Comment(String),
 
     // Operators
     Assign,
