@@ -85,7 +85,15 @@ fn parse_program(input: Tokens) -> IResult<Tokens, Program> {
 }
 
 fn parse_statement(input: Tokens) -> IResult<Tokens, Statement> {
-    let (remaining_tokens, statement) = parse_expression_statement(input)?;
+    let (remaining_tokens, statement) = alt((
+        parse_program_start,
+        parse_program_end,
+        parse_let_statement,
+        parse_if_statement,
+        parse_while_statement,
+        parse_print_statement,
+        parse_expression_statement,
+    ))(input)?;
 
     let remaining_tokens = if let Ok((remaining_tokens, _)) =
         opt(many0(tag_token(TokenType::EndOfStatement)))(remaining_tokens)
@@ -101,6 +109,15 @@ fn parse_expression_statement(input: Tokens) -> IResult<Tokens, Statement> {
     map(parse_expr, |expr| Statement::Expression(expr))(input)
 }
 
+fn parse_program_start(input: Tokens) -> IResult<Tokens, Statement> {
+    map(tag_token(TokenType::StartProgram), |_| {
+        Statement::ProgramStart
+    })(input)
+}
+
+fn parse_program_end(input: Tokens) -> IResult<Tokens, Statement> {
+    map(tag_token(TokenType::EndProgram), |_| Statement::ProgramEnd)(input)
+}
 fn tag_token(token: TokenType) -> impl Fn(Tokens) -> IResult<Tokens, Tokens> {
     move |input: Tokens| {
         let (remaining_tokens, first_token) = take(1usize)(input)?;
@@ -113,6 +130,38 @@ fn tag_token(token: TokenType) -> impl Fn(Tokens) -> IResult<Tokens, Tokens> {
             }))
         }
     }
+}
+
+fn parse_let_statement(input: Tokens) -> IResult<Tokens, Statement> {
+    map(
+        tuple((parse_ident, assign_tag, parse_expr)),
+        |(ident, _, expr)| Statement::Let {
+            name: ident,
+            value: expr,
+        },
+    )(input)
+}
+
+fn parse_while_statement(input: Tokens) -> IResult<Tokens, Statement> {
+    map(
+        tuple((
+            tag_token(TokenType::While),
+            parse_expr,
+            tag_token(TokenType::Do),
+            many0(parse_statement),
+            tag_token(TokenType::EndWhile),
+        )),
+        |(_, condition, _, body, _)| Statement::While {
+            condition: Box::new(condition),
+            body,
+        },
+    )(input)
+}
+
+fn parse_print_statement(input: Tokens) -> IResult<Tokens, Statement> {
+    map(preceded(tag_token(TokenType::Print), parse_expr), |expr| {
+        Statement::Print(Box::new(expr))
+    })(input)
 }
 
 fn parse_expr(input: Tokens) -> IResult<Tokens, Expression> {
@@ -213,6 +262,60 @@ fn parse_prefix_expr(input: Tokens) -> IResult<Tokens, Expression> {
 
 fn parse_input_expr(input: Tokens) -> IResult<Tokens, Expression> {
     map(tag_token(TokenType::Input), |_| Expression::Input)(input)
+}
+
+fn parse_if_statement(input: Tokens) -> IResult<Tokens, Statement> {
+    map(
+        tuple((
+            if_tag,
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            parse_expr,
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            then_tag,
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            many0(parse_statement),
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            opt(parse_else_elif),
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            opt(parse_else),
+            tag_token(TokenType::EndIf),
+        )),
+        |(_, _, condition, _, _, _, consequence, _, elif, _, else_, _)| Statement::If {
+            condition: Box::new(condition),
+            consequence,
+            alternative: else_.or(elif),
+        },
+    )(input)
+}
+fn parse_else_elif(input: Tokens) -> IResult<Tokens, Vec<Statement>> {
+    map(
+        tuple((
+            elseif_tag,
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            parse_expr,
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            tag_token(TokenType::Then),
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            many0(parse_statement),
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            opt(parse_else_elif),
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            opt(parse_else),
+        )),
+        |(_, _, condition, _, _, _, consequence, _, elif, _, else_)| {
+            vec![Statement::If {
+                condition: Box::new(condition),
+                consequence,
+                alternative: elif.or(else_),
+            }]
+        },
+    )(input)
+}
+
+fn parse_else(input: Tokens) -> IResult<Tokens, Vec<Statement>> {
+    map(preceded(else_tag, many0(parse_statement)), |statements| {
+        statements
+    })(input)
 }
 
 fn parse_prefix_operator(input: Tokens) -> IResult<Tokens, Prefix> {
