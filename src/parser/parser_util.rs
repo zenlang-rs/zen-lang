@@ -292,10 +292,10 @@ fn parse_if_statement(input: Tokens) -> IResult<Tokens, Statement> {
                 alternative: else_.or(elif),
             },
         )),
-        _ => Err(nom::Err::Failure(nom::error::Error {
-            input,
-            code: nom::error::ErrorKind::Fail,
-        })),
+        // _ => Err(nom::Err::Failure(nom::error::Error {
+        //     input,
+        //     code: nom::error::ErrorKind::Fail,
+        // })),
     }
 }
 

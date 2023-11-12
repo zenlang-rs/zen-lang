@@ -271,3 +271,98 @@ fn test_lex_newline() {
 
     assert_eq!(Lexer::lex_tokens(input), expected_output);
 }
+
+#[test]
+fn test_complex_program() {
+    let input = b"PARAMPARA PRATISHTA ANUSHASHAN
+        A BOLE TOH 10
+        C BOLE TOH INPUT LE LE RE BABA
+
+        AGAR A > 3 TAB
+        A BOLE TOH A+10
+        WARNA AGAR B > 3 TAB
+        B BOLE TOH B+A
+        PRINT BASANTI PRINT B
+        NHI TOH
+        PRINT BASANTI PRINT A*10+B
+        PRINT BASANTI PRINT B
+        BAS ITNA HI
+
+        JAB TAK HAI JAAN A > 3 TAB TAK
+        PRINT BASANTI PRINT A
+        JAHAN
+
+        PRINT BASANTI PRINT A
+
+        KHATAM TATA BYE BYE";
+    let expected_output = Ok((
+        &b""[..],
+        vec![
+            TokenType::StartProgram,
+            TokenType::Identifier("A".to_string()),
+            TokenType::Assign,
+            TokenType::Number(10.0),
+            TokenType::EndOfStatement,
+            TokenType::Identifier("C".to_string()),
+            TokenType::Assign,
+            TokenType::Input,
+            TokenType::If,
+            TokenType::Identifier("A".to_string()),
+            TokenType::GreaterThan,
+            TokenType::Number(3.0),
+            TokenType::Then,
+            TokenType::EndOfStatement,
+            TokenType::Identifier("A".to_string()),
+            TokenType::Assign,
+            TokenType::Identifier("A".to_string()),
+            TokenType::Plus,
+            TokenType::Number(10.0),
+            TokenType::EndOfStatement,
+            TokenType::ElseIf,
+            TokenType::Identifier("B".to_string()),
+            TokenType::GreaterThan,
+            TokenType::Number(3.0),
+            TokenType::Then,
+            TokenType::EndOfStatement,
+            TokenType::Identifier("B".to_string()),
+            TokenType::Assign,
+            TokenType::Identifier("B".to_string()),
+            TokenType::Plus,
+            TokenType::Identifier("A".to_string()),
+            TokenType::EndOfStatement,
+            TokenType::Print,
+            TokenType::Identifier("B".to_string()),
+            TokenType::EndOfStatement,
+            TokenType::Else,
+            TokenType::Print,
+            TokenType::Identifier("A".to_string()),
+            TokenType::Multiply,
+            TokenType::Number(10.0),
+            TokenType::Plus,
+            TokenType::Identifier("B".to_string()),
+            TokenType::EndOfStatement,
+            TokenType::Print,
+            TokenType::Identifier("B".to_string()),
+            TokenType::EndOfStatement,
+            TokenType::EndIf,
+            TokenType::While,
+            TokenType::Identifier("A".to_string()),
+            TokenType::GreaterThan,
+            TokenType::Number(3.0),
+            TokenType::Do,
+            TokenType::Print,
+            TokenType::Identifier("A".to_string()),
+            TokenType::EndOfStatement,
+            TokenType::EndWhile,
+            TokenType::EndOfStatement,
+            TokenType::EndOfStatement,
+            TokenType::Print,
+            TokenType::Identifier("A".to_string()),
+            TokenType::EndOfStatement,
+            TokenType::EndOfStatement,
+            TokenType::EndProgram,
+            TokenType::Eof,
+        ],
+    ));
+    assert_eq!(Lexer::lex_tokens(input), expected_output);
+}

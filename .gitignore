@@ -16,3 +16,4 @@ Cargo.lock
 *.pdb
 =======
 /target
+.DS_Store
