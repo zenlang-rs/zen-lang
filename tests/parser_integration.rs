@@ -665,3 +665,35 @@ fn test_complex_program() {
     };
     assert_input_with_program(input, program);
 }
+
+////////////////////////////////////////////////////////////////!
+#[test]
+fn test_double_program_start() {
+    let input = "PARAMPARA PRATISHTA ANUSHASHAN PARAMPARA PRATISHTA ANUSHASHAN KHATAM TATA BYE BYE"
+        .as_bytes();
+    let program: Program = Program {
+        statements: vec![
+            Statement::ProgramStart,
+            Statement::ProgramStart,
+            Statement::ProgramEnd,
+        ],
+    };
+    assert_input_with_program(input, program);
+}
+
+#[test]
+fn test_incorrect_if_statement() {
+    let input = "AGAR A > 3 TAB A BOLE TOH A+10 WARNA AGAR A < 3 TAB A BOLE TOH A-10 NHI TOH A BOLE TOH A*10".as_bytes();
+    let (_, r) = Lexer::lex_tokens(input).unwrap();
+    let tokens = Tokens::new(&r);
+    let result = Parser::parse_tokens(tokens);
+
+    assert!(
+        result.is_err(),
+        "Expected an error due to missing EndIf tag, but no error was returned"
+    );
+
+    if let Err(e) = result {
+        println!("Received expected error: {:?}", e);
+    }
+}

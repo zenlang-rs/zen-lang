@@ -1,5 +1,5 @@
 use nom::branch::alt;
-use nom::error::{Error, ErrorKind};
+use nom::error::{context, Error, ErrorKind};
 use nom::multi::many0;
 use nom::sequence::{preceded, tuple};
 use nom::{error_position, IResult};
@@ -11,7 +11,6 @@ use nom;
 use nom::bytes::complete::take;
 use nom::combinator::{map, opt, peek, verify};
 use nom::Err;
-
 use std::result::Result::*;
 macro_rules! tag_token (
     ($func_name:ident, $tag: expr) => (
@@ -23,24 +22,24 @@ macro_rules! tag_token (
 fn parse_literal(input: Tokens) -> IResult<Tokens, Literal> {
     let (i1, t1) = take(1usize)(input)?;
     if t1.tok.is_empty() {
-        Err(Err::Error(Error::new(input, ErrorKind::Tag)))
+        Err(Err::Error(Error::new(input, ErrorKind::Fail)))
     } else {
         match t1.tok[0].clone() {
             TokenType::Number(name) => Ok((i1, Literal::Number(name))),
             TokenType::StringLiteral(s) => Ok((i1, Literal::StringLiteral(s))),
             TokenType::BooleanLiteral(b) => Ok((i1, Literal::BoolLiteral(b))),
-            _ => Err(Err::Error(Error::new(input, ErrorKind::Tag))),
+            _ => Err(Err::Error(Error::new(input, ErrorKind::Fail))),
         }
     }
 }
 fn parse_ident(input: Tokens) -> IResult<Tokens, Ident> {
     let (i1, t1) = take(1usize)(input)?;
     if t1.tok.is_empty() {
-        Err(Err::Error(Error::new(input, ErrorKind::Tag)))
+        Err(Err::Error(Error::new(input, ErrorKind::Fail)))
     } else {
         match t1.tok[0].clone() {
             TokenType::Identifier(name) => Ok((i1, Ident(name))),
-            _ => Err(Err::Error(Error::new(input, ErrorKind::Tag))),
+            _ => Err(Err::Error(Error::new(input, ErrorKind::Fail))),
         }
     }
 }
@@ -80,7 +79,7 @@ impl Parser {
 }
 
 fn parse_program(input: Tokens) -> IResult<Tokens, Program> {
-    let (remaining_tokens, statements) = many0(parse_statement)(input)?;
+    let (remaining_tokens, statements) = context("parse_program", many0(parse_statement))(input)?;
     Ok((remaining_tokens, Program { statements }))
 }
 
@@ -125,9 +124,9 @@ fn tag_token(token: TokenType) -> impl Fn(Tokens) -> IResult<Tokens, Tokens> {
         if first_token.tok[0] == token {
             Ok((remaining_tokens, first_token))
         } else {
-            Err(nom::Err::Error(nom::error::Error {
+            Err(nom::Err::Failure(nom::error::Error {
                 input,
-                code: nom::error::ErrorKind::Tag,
+                code: nom::error::ErrorKind::Fail,
             }))
         }
     }
@@ -199,12 +198,12 @@ fn go_parse_pratt_expr(
 fn parse_infix_expr(input: Tokens, left: Expression) -> IResult<Tokens, Expression> {
     let (i1, t1) = take(1usize)(input)?;
     if t1.tok.is_empty() {
-        Err(Err::Error(error_position!(input, ErrorKind::Tag)))
+        Err(Err::Error(error_position!(input, ErrorKind::Fail)))
     } else {
         let next = &t1.tok[0];
         let (precedence, maybe_op) = infix_op(next);
         match maybe_op {
-            None => Err(Err::Error(error_position!(input, ErrorKind::Tag))),
+            None => Err(Err::Error(error_position!(input, ErrorKind::Fail))),
             Some(op) => {
                 let (i2, right) = parse_pratt_expr(i1, precedence)?;
                 Ok((
@@ -244,7 +243,7 @@ fn parse_literal_expr(input: Tokens) -> IResult<Tokens, Expression> {
     if next.tok.is_empty() || !matches!(next.tok[0], TokenType::Identifier(_)) {
         Ok((i1, Expression::LiteralExpr(lit)))
     } else {
-        Err(Err::Error(Error::new(input, ErrorKind::Tag)))
+        Err(Err::Error(Error::new(input, ErrorKind::Fail)))
     }
 }
 fn parse_identifier_expr(input: Tokens) -> IResult<Tokens, Expression> {
@@ -266,7 +265,8 @@ fn parse_input_expr(input: Tokens) -> IResult<Tokens, Expression> {
 }
 
 fn parse_if_statement(input: Tokens) -> IResult<Tokens, Statement> {
-    map(
+    let (remaining_tokens, result) = context(
+        "parse_if_statement",
         tuple((
             if_tag,
             opt(many0(tag_token(TokenType::EndOfStatement))),
@@ -281,13 +281,24 @@ fn parse_if_statement(input: Tokens) -> IResult<Tokens, Statement> {
             opt(parse_else),
             tag_token(TokenType::EndIf),
         )),
-        |(_, _, condition, _, _, _, consequence, _, elif, _, else_, _)| Statement::If {
-            condition: Box::new(condition),
-            consequence,
-            alternative: else_.or(elif),
-        },
-    )(input)
+    )(input)?;
+
+    match result {
+        (_, _, condition, _, _, _, consequence, _, elif, _, else_, _) => Ok((
+            remaining_tokens,
+            Statement::If {
+                condition: Box::new(condition),
+                consequence,
+                alternative: else_.or(elif),
+            },
+        )),
+        _ => Err(nom::Err::Failure(nom::error::Error {
+            input,
+            code: nom::error::ErrorKind::Fail,
+        })),
+    }
 }
+
 fn parse_else_elif(input: Tokens) -> IResult<Tokens, Vec<Statement>> {
     map(
         tuple((
@@ -327,7 +338,7 @@ fn parse_prefix_operator(input: Tokens) -> IResult<Tokens, Prefix> {
         TokenType::Not => Ok((remaining_tokens, Prefix::Not)),
         _ => Err(nom::Err::Error(nom::error::Error {
             input,
-            code: nom::error::ErrorKind::Tag,
+            code: nom::error::ErrorKind::Fail,
         })),
     }
 }
