@@ -19,3 +19,19 @@ fn test_evaluator_works() {
     println!("{:#?}", evaluator::interpreter::Interpreter::new().run_code(assert_input_with_program(input)));
 
 }
+
+#[test]
+fn test_if_evaluator_works() {
+    let input = "PARAMPARA PRATISHTA ANUSHASHAN
+        A BOLE TOH 10
+        @ B BOLE TOH 20
+        JAB TAK HAI JAAN A < 20 && A > 0 TAB TAK
+            PRINT BASANTI PRINT A
+            A BOLE TOH A - 1
+        JAHAN
+        KHATAM TATA BYE BYE"
+        .as_bytes();
+
+    println!("{:#?}", evaluator::interpreter::Interpreter::new().run_code(assert_input_with_program(input)));
+
+}
