@@ -6,7 +6,8 @@ use std::fmt;
 pub struct Interpreter {
     output: String,
     variable_stack: HashMap<String, f64>,
-    input: String
+    input: String,
+    allow_input_from_console: bool
 }
 
 #[derive(Debug)]
@@ -46,17 +47,18 @@ impl InterpreterError {
 
 impl Default for Interpreter {
     fn default() -> Self {
-        Self::new("")
+        Self::new("", false)
     }
 }
 
 impl Interpreter {
 
-    pub fn new(input: &str) -> Self {
+    pub fn new(input: &str, allow_input_from_console: bool) -> Self {
         Self {
             output: "".to_string(),
             variable_stack: Default::default(),
             input: input.to_string(),
+            allow_input_from_console
         }
     }
     pub fn run_code(&mut self, program_ast: Program) -> Result<String, InterpreterError> {
@@ -151,7 +153,7 @@ impl Interpreter {
     fn take_input_from_stdin(&mut self) -> Result<Literal, InterpreterError> {
         // TODO: Implement taking input from user, with possible account for string based input!
         let mut value= String::new();
-        if self.input.is_empty() {
+        if self.input.is_empty() && self.allow_input_from_console {
             std::io::stdin()
                 .read_line(&mut value)
                 .expect("Failed to read line");

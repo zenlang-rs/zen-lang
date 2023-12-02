@@ -16,7 +16,7 @@ pub fn compile(mut code: String) -> Result<String, String> {
     Ok(code)
 }
 
-pub fn run_program(code: String, input: &str) -> Result<String, InterpreterError> {
+pub fn run_program(code: String, input: &str, allow_input_from_console: bool) -> Result<String, InterpreterError> {
     let (_, r) = Lexer::lex_tokens(code.as_bytes()).unwrap();
     let tokens = Tokens::new(&r);
     let (_, result) = Parser::parse_tokens(tokens).unwrap();
@@ -25,5 +25,5 @@ pub fn run_program(code: String, input: &str) -> Result<String, InterpreterError
         return Err(InterpreterError::new("Some error in parsing the language!", UnknownParserError));
     }
 
-    Interpreter::new(input).run_code(result)
+    Interpreter::new(input, allow_input_from_console).run_code(result)
 }

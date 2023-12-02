@@ -16,7 +16,7 @@ fn test_evaluator_works() {
         @ B BOLE TOH 20\n B BOLE TOH 20\nPRINT BASANTI PRINT A + B * A\n KHATAM TATA BYE BYE"
         .as_bytes();
 
-    println!("{:#?}", evaluator::interpreter::Interpreter::new("").run_code(assert_input_with_program(input)));
+    println!("{:#?}", evaluator::interpreter::Interpreter::new("", false).run_code(assert_input_with_program(input)));
 
 }
 
@@ -34,6 +34,6 @@ fn test_if_evaluator_works() {
         KHATAM TATA BYE BYE"
         .as_bytes();
 
-    println!("{:#?}", evaluator::interpreter::Interpreter::new("").run_code(assert_input_with_program(input)));
+    println!("{:#?}", evaluator::interpreter::Interpreter::new("", false).run_code(assert_input_with_program(input)));
 
 }

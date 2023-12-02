@@ -23,7 +23,7 @@ fn main() {
             }
         };
 
-        let runnable = run_program(contents, "");
+        let runnable = run_program(contents, "", true);
         match runnable {
             Ok(output) => {
                 println!("{}", output);
