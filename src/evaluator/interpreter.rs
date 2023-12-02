@@ -1,9 +1,7 @@
-#![allow(dead_code)]
-
 use crate::evaluator::interpreter::InterpreterErrorType::{DeadlyError, DivisionByZero, IncompatibleDataType, MissingStartSymbol, SyntaxError, UndefinedVariable};
 use crate::parser::ast::{Expression, Ident, Infix, Literal, Prefix, Program, Statement};
 use std::collections::HashMap;
-use std::process::exit;
+use std::fmt;
 
 pub struct Interpreter {
     output: String,
@@ -18,15 +16,24 @@ pub enum InterpreterErrorType {
     UndefinedVariable,
     DivisionByZero,
     IncompatibleDataType,
-    DeadlyError
+    DeadlyError,
+    InvalidInputError,
+    EmptyCustomInputStack
 }
 
 #[derive(Debug)]
 pub struct InterpreterError {
-    msg: String,
-    error_type: InterpreterErrorType,
+    pub msg: String,
+    pub error_type: InterpreterErrorType,
 }
 
+impl fmt::Display for InterpreterErrorType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+        // or, alternatively:
+        // fmt::Debug::fmt(self, f)
+    }
+}
 impl InterpreterError {
     pub fn new(msg: &str, err_type: InterpreterErrorType) -> Self {
         InterpreterError {
@@ -38,17 +45,17 @@ impl InterpreterError {
 
 impl Default for Interpreter {
     fn default() -> Self {
-        Self::new()
+        Self::new("")
     }
 }
 
 impl Interpreter {
 
-    pub fn new() -> Self {
+    pub fn new(input: &str) -> Self {
         Self {
             output: "".to_string(),
             variable_stack: Default::default(),
-            input: "".to_string(),
+            input: input.to_string(),
         }
     }
     pub fn run_code(&mut self, program_ast: Program) -> Result<String, InterpreterError> {
@@ -130,19 +137,47 @@ impl Interpreter {
         Ok(self.output.clone())
     }
 
-    fn evaluate_expression(&self, expression: &Expression) -> Result<Literal, InterpreterError> {
+    fn evaluate_expression(&mut self, expression: &Expression) -> Result<Literal, InterpreterError> {
         match expression {
             Expression::IdentifierExpr(ident) => self.get_value_of(ident),
             Expression::LiteralExpr(literal) => Ok(literal.clone()),
             Expression::PrefixExpr { .. } => self.evaluate_prefix_expression(expression),
             Expression::InfixExpr { .. } => self.evaluate_infix_expression(expression),
-            Expression::Input => Ok(Literal::Number(Self::take_input_from_stdin())),
+            Expression::Input => self.take_input_from_stdin(),
         }
     }
 
-    fn take_input_from_stdin() -> f64 {
+    fn take_input_from_stdin(&mut self) -> Result<Literal, InterpreterError> {
         // TODO: Implement taking input from user, with possible account for string based input!
-        12_f64
+        let mut value= String::new();
+        if self.input.is_empty() {
+            std::io::stdin()
+                .read_line(&mut value)
+                .expect("Failed to read line");
+
+            let value: f64 = match value.trim().parse() {
+                Ok(num) => num,
+                Err(_) => return Err(InterpreterError::new("Expected numeral types as input only!", InterpreterErrorType::InvalidInputError)),
+            };
+
+            Ok(Literal::Number(value))
+        }
+        else {
+            let mut value = self.input.split_whitespace().collect::<Vec<&str>>();
+
+            if value.is_empty() {
+                return Err(InterpreterError::new("Input Stack is empty!", InterpreterErrorType::EmptyCustomInputStack));
+            }
+
+            let num_value: f64 = match value[0].trim().parse() {
+                Ok(num) => num,
+                Err(_) => return Err(InterpreterError::new("Expected numeral types as input only!", InterpreterErrorType::InvalidInputError)),
+            };
+            value.remove(0);
+            self.input = value.join(" ");
+
+            Ok(Literal::Number(num_value))
+        }
     }
 
     fn get_value_of(&self, ident: &Ident) -> Result<Literal, InterpreterError> {
@@ -170,7 +205,7 @@ impl Interpreter {
     }
 
     fn evaluate_prefix_expression(
-        &self,
+        &mut self,
         expression: &Expression,
     ) -> Result<Literal, InterpreterError> {
         if let Expression::PrefixExpr { operator, right } = expression {
@@ -215,7 +250,7 @@ impl Interpreter {
         ))
     }
     fn evaluate_infix_expression(
-        &self,
+        &mut self,
         expression: &Expression,
     ) -> Result<Literal, InterpreterError> {
         if let Expression::InfixExpr {

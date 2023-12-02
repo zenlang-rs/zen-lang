@@ -16,7 +16,7 @@ fn test_evaluator_works() {
         @ B BOLE TOH 20\n B BOLE TOH 20\nPRINT BASANTI PRINT A + B * A\n KHATAM TATA BYE BYE"
         .as_bytes();
 
-    println!("{:#?}", evaluator::interpreter::Interpreter::new().run_code(assert_input_with_program(input)));
+    println!("{:#?}", evaluator::interpreter::Interpreter::new("").run_code(assert_input_with_program(input)));
 
 }
 
@@ -24,7 +24,9 @@ fn test_evaluator_works() {
 fn test_if_evaluator_works() {
     let input = "PARAMPARA PRATISHTA ANUSHASHAN
         A BOLE TOH 10
-        @ B BOLE TOH 20
+        A BOLE TOH INPUT LE LE RE BABA
+        A BOLE TOH INPUT LE LE RE BABA
+        A BOLE TOH INPUT LE LE RE BABA
         JAB TAK HAI JAAN A < 20 && A > 0 TAB TAK
             PRINT BASANTI PRINT A
             A BOLE TOH A - 1
@@ -32,6 +34,6 @@ fn test_if_evaluator_works() {
         KHATAM TATA BYE BYE"
         .as_bytes();
 
-    println!("{:#?}", evaluator::interpreter::Interpreter::new().run_code(assert_input_with_program(input)));
+    println!("{:#?}", evaluator::interpreter::Interpreter::new("").run_code(assert_input_with_program(input)));
 
 }
