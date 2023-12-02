@@ -18,7 +18,8 @@ pub enum InterpreterErrorType {
     IncompatibleDataType,
     DeadlyError,
     InvalidInputError,
-    EmptyCustomInputStack
+    EmptyCustomInputStack,
+    UnknownParserError
 }
 
 #[derive(Debug)]
