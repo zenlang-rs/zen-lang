@@ -58,13 +58,13 @@ pub fn lex_operator(input: &[u8]) -> IResult<&[u8], TokenType> {
         multiply_operator,
         divide_operator,
         modulo_operator,
-        greater_operator,
         greater_equal_operator,
-        less_operator,
         less_equal_operator,
+        greater_operator,
+        less_operator,
         equal_operator,
-        not_operator,
         not_equal_operator,
+        not_operator,
     ))(input)
 }
 // Keywords
@@ -276,7 +276,7 @@ fn lex_comment(input: &[u8]) -> IResult<&[u8], TokenType> {
             bytes::complete::take_until("\n"),
             bytes::complete::tag(b"\n"),
         ),
-        |_| TokenType::Ignored, // Ignore the comment
+        |_| TokenType::EndOfStatement, // Ignore the comment
     )(input)
 }
 
@@ -301,12 +301,6 @@ fn lex_newline(input: &[u8]) -> IResult<&[u8], TokenType> {
 
 pub fn lex_tokens(input: &[u8]) -> IResult<&[u8], Vec<TokenType>> {
     let (remaining_input, tokens) = many0(preceded(space0, lex_token))(input)?;
-
-    // Filter out TokenType::Ignored tokens
-    let tokens: Vec<_> = tokens
-        .into_iter()
-        .filter(|token| !matches!(token, TokenType::Ignored))
-        .collect();
 
     Ok((remaining_input, tokens))
 }

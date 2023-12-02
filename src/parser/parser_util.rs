@@ -135,8 +135,13 @@ fn tag_token(token: TokenType) -> impl Fn(Tokens) -> IResult<Tokens, Tokens> {
 
 fn parse_let_statement(input: Tokens) -> IResult<Tokens, Statement> {
     map(
-        tuple((parse_ident, assign_tag, parse_expr)),
-        |(ident, _, expr)| Statement::Let {
+        tuple((
+            opt(many0(tag_token(TokenType::EndOfStatement))),
+            parse_ident,
+            assign_tag,
+            parse_expr,
+        )),
+        |(_, ident, _, expr)| Statement::Let {
             name: ident,
             value: expr,
         },
@@ -147,12 +152,16 @@ fn parse_while_statement(input: Tokens) -> IResult<Tokens, Statement> {
     map(
         tuple((
             tag_token(TokenType::While),
+            opt(many0(tag_token(TokenType::EndOfStatement))),
             parse_expr,
+            opt(many0(tag_token(TokenType::EndOfStatement))),
             tag_token(TokenType::Do),
+            opt(many0(tag_token(TokenType::EndOfStatement))),
             many0(parse_statement),
+            opt(many0(tag_token(TokenType::EndOfStatement))),
             tag_token(TokenType::EndWhile),
         )),
-        |(_, condition, _, body, _)| Statement::While {
+        |(_, _, condition, _, _, _, body, _, _)| Statement::While {
             condition: Box::new(condition),
             body,
         },

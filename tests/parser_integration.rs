@@ -112,7 +112,7 @@ fn test_print_statement() {
 #[test]
 fn test_while_statement() {
     let input = "JAB TAK HAI JAAN A > 3 TAB TAK \n PRINT BASANTI PRINT A \
-            PRINT BASANTI PRINT B \
+            PRINT BASANTI PRINT B 
             JAHAN"
         .as_bytes();
     let program: Program = Program {
@@ -504,7 +504,7 @@ fn test_if_statement_complex_logical_condition() {
 
 #[test]
 fn test_if_statement_complex_boolean_condition() {
-    let input = "AGAR A > B && B < C TAB A BOLE TOH A+10 BAS ITNA HI".as_bytes();
+    let input = "AGAR A > B && B <= C TAB A BOLE TOH A+10 BAS ITNA HI".as_bytes();
     let program: Program = Program {
         statements: vec![Statement::If {
             condition: Box::new(Expression::InfixExpr {
@@ -516,7 +516,7 @@ fn test_if_statement_complex_boolean_condition() {
                 operator: Infix::LogicalAnd,
                 right: Box::new(Expression::InfixExpr {
                     left: Box::new(Expression::IdentifierExpr(Ident("B".to_string()))),
-                    operator: Infix::LessThan,
+                    operator: Infix::LessThanEqual,
                     right: Box::new(Expression::IdentifierExpr(Ident("C".to_string()))),
                 }),
             }),
@@ -573,7 +573,7 @@ fn test_complex_program() {
     C BOLE TOH INPUT LE LE RE BABA
     AGAR A > 3 TAB
     A BOLE TOH A+10
-    WARNA AGAR B > 3 TAB
+    WARNA AGAR B >= 3 TAB
     B BOLE TOH B+A
     PRINT BASANTI PRINT B
     NHI TOH
@@ -617,7 +617,7 @@ fn test_complex_program() {
                 alternative: Some(vec![Statement::If {
                     condition: Box::new(Expression::InfixExpr {
                         left: Box::new(Expression::IdentifierExpr(Ident("B".to_string()))),
-                        operator: Infix::GreaterThan,
+                        operator: Infix::GreaterThanEqual,
                         right: Box::new(Expression::LiteralExpr(Literal::Number(3.0))),
                     }),
                     consequence: vec![
@@ -662,6 +662,89 @@ fn test_complex_program() {
             Statement::Print(Box::new(Expression::IdentifierExpr(Ident("A".to_string())))),
             Statement::ProgramEnd,
         ],
+    };
+    assert_input_with_program(input, program);
+}
+
+// #[test]
+// fn test_complex_expression12() {
+//     let input = "PARAMPARA PRATISHTA ANUSHASHAN A BOLE TOH 10 + 5 - 3 * 2 / 1 % 2 PRINT BASANTI PRINT A KHATAM TATA BYE BYE".as_bytes();
+//     let program: Program = Program {
+//         statements: vec![
+//             Statement::ProgramStart,
+//             Statement::Let {
+//                 name: Ident("A".to_string()),
+//                 value: Expression::InfixExpr {
+//                     left: Box::new(Expression::InfixExpr {
+//                         left: Box::new(Expression::InfixExpr {
+//                             left: Box::new(Expression::InfixExpr {
+//                                 left: Box::new(Expression::InfixExpr {
+//                                     left: Box::new(Expression::LiteralExpr(Literal::Number(10.0))),
+//                                     operator: Infix::Plus,
+//                                     right: Box::new(Expression::LiteralExpr(Literal::Number(5.0))),
+//                                 }),
+//                                 operator: Infix::Minus,
+//                                 right: Box::new(Expression::LiteralExpr(Literal::Number(3.0))),
+//                             }),
+//                             operator: Infix::Multiply,
+//                             right: Box::new(Expression::LiteralExpr(Literal::Number(2.0))),
+//                         }),
+//                         operator: Infix::Divide,
+//                         right: Box::new(Expression::LiteralExpr(Literal::Number(1.0))),
+//                     }),
+//                     operator: Infix::Modulo,
+//                     right: Box::new(Expression::LiteralExpr(Literal::Number(2.0))),
+//                 },
+//             },
+//             Statement::Print(Box::new(Expression::IdentifierExpr(Ident("A".to_string())))),
+//             Statement::ProgramEnd,
+//         ],
+//     };
+//     assert_input_with_program(input, program);
+// }
+
+#[test]
+fn test_complex_expression_print() {
+    let input = "PRINT BASANTI PRINT 3-4/2*3".as_bytes();
+    let program: Program = Program {
+        statements: vec![Statement::Print(Box::new(Expression::InfixExpr {
+            left: Box::new(Expression::LiteralExpr(Literal::Number(3.0))),
+            operator: Infix::Minus,
+            right: Box::new(Expression::InfixExpr {
+                left: Box::new(Expression::InfixExpr {
+                    left: Box::new(Expression::LiteralExpr(Literal::Number(4.0))),
+                    operator: Infix::Divide,
+                    right: Box::new(Expression::LiteralExpr(Literal::Number(2.0))),
+                }),
+                operator: Infix::Multiply,
+                right: Box::new(Expression::LiteralExpr(Literal::Number(3.0))),
+            }),
+        }))],
+    };
+    assert_input_with_program(input, program);
+}
+
+#[test]
+fn test_complex_expression_123() {
+    let input = "PRINT BASANTI PRINT 3.0 - 4.0 / 2.0 * 3.0 % 2.0".as_bytes();
+    let program: Program = Program {
+        statements: vec![Statement::Print(Box::new(Expression::InfixExpr {
+            left: Box::new(Expression::LiteralExpr(Literal::Number(3.0))),
+            operator: Infix::Minus,
+            right: Box::new(Expression::InfixExpr {
+                left: Box::new(Expression::InfixExpr {
+                    left: Box::new(Expression::InfixExpr {
+                        left: Box::new(Expression::LiteralExpr(Literal::Number(4.0))),
+                        operator: Infix::Divide,
+                        right: Box::new(Expression::LiteralExpr(Literal::Number(2.0))),
+                    }),
+                    operator: Infix::Multiply,
+                    right: Box::new(Expression::LiteralExpr(Literal::Number(3.0))),
+                }),
+                operator: Infix::Modulo,
+                right: Box::new(Expression::LiteralExpr(Literal::Number(2.0))),
+            }),
+        }))],
     };
     assert_input_with_program(input, program);
 }

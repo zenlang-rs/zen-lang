@@ -2,7 +2,6 @@
 pub enum TokenType {
     // Special tokens
     Illegal,
-    Ignored, // for comments
     Eof,
     EndOfStatement,
 

@@ -30,6 +30,23 @@ fn test_lex_tokens() {
 }
 
 #[test]
+fn test_relational() {
+    let input = b">= > == < <=";
+    let expected_output = Ok((
+        &b""[..],
+        vec![
+            TokenType::GreaterThanEqual,
+            TokenType::GreaterThan,
+            TokenType::Equal,
+            TokenType::LessThan,
+            TokenType::LessThanEqual,
+            TokenType::Eof,
+        ],
+    ));
+    assert_eq!(Lexer::lex_tokens(input), expected_output);
+}
+
+#[test]
 fn test_program_start_and_end() {
     let input = b"    PAPARAMPARA    PARAMPARA PRATISHTA ANUSHASHAN KHATAM TATA   BYE BYE";
     let expected_output = Ok((
@@ -151,7 +168,7 @@ fn test_while_statement() {
 #[test]
 fn test_comment() {
     let input = b"@ This is a comment\n";
-    let expected_output = Ok((&b""[..], vec![TokenType::Eof]));
+    let expected_output = Ok((&b""[..], vec![TokenType::EndOfStatement, TokenType::Eof]));
     assert_eq!(Lexer::lex_tokens(input), expected_output);
 }
 

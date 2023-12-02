@@ -1,7 +1,7 @@
+use colored::Colorize;
 use std::process;
 use std::{env, fs, io, io::Write};
 use zen::run_program;
-use colored::Colorize;
 
 pub mod lexer;
 pub mod parser;
@@ -29,10 +29,14 @@ fn main() {
                 println!("{}", output);
             }
             Err(e) => {
-                println!("{}\nMessage: {}\nError Type: {}", "Runtime Error occurred!".red(), e.msg.blue(), e.error_type.to_string().yellow());
+                println!(
+                    "{}\nMessage: {}\nError Type: {}",
+                    "Runtime Error occurred!".red(),
+                    e.msg.blue(),
+                    e.error_type.to_string().yellow()
+                );
             }
         }
-
     } else {
         println!("Welcome To Zen world!");
         println!("Generate AST from code right here!");
@@ -48,5 +52,4 @@ fn main() {
 
         println!("Here is your AST:\n {:#?}", result);
     }
-
 }

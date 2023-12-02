@@ -1,4 +1,7 @@
-use crate::evaluator::interpreter::InterpreterErrorType::{DeadlyError, DivisionByZero, IncompatibleDataType, MissingStartSymbol, SyntaxError, UndefinedVariable};
+use crate::evaluator::interpreter::InterpreterErrorType::{
+    DeadlyError, DivisionByZero, IncompatibleDataType, MissingStartSymbol, SyntaxError,
+    UndefinedVariable,
+};
 use crate::parser::ast::{Expression, Ident, Infix, Literal, Prefix, Program, Statement};
 use std::collections::HashMap;
 use std::fmt;
@@ -7,7 +10,7 @@ pub struct Interpreter {
     output: String,
     variable_stack: HashMap<String, f64>,
     input: String,
-    is_on_console: bool
+    is_on_console: bool,
 }
 
 #[derive(Debug)]
@@ -20,7 +23,7 @@ pub enum InterpreterErrorType {
     DeadlyError,
     InvalidInputError,
     EmptyCustomInputStack,
-    UnknownParserError
+    UnknownParserError,
 }
 
 #[derive(Debug)]
@@ -52,26 +55,31 @@ impl Default for Interpreter {
 }
 
 impl Interpreter {
-
     pub fn new(input: &str, is_on_console: bool) -> Self {
         Self {
             output: "".to_string(),
             variable_stack: Default::default(),
             input: input.to_string(),
-            is_on_console
+            is_on_console,
         }
     }
     pub fn run_code(&mut self, program_ast: Program) -> Result<String, InterpreterError> {
         let mut program_ast_iter = program_ast.statements.iter();
 
         if program_ast_iter.next() != Some(&Statement::ProgramStart) {
-            return Err(InterpreterError::new("Expected start symbol at start!", MissingStartSymbol));
+            return Err(InterpreterError::new(
+                "Expected start symbol at start!",
+                MissingStartSymbol,
+            ));
         }
 
         for statement in program_ast_iter {
             match statement {
                 Statement::ProgramStart => {
-                    return Err(InterpreterError::new("Only one start symbol allowed!", SyntaxError));
+                    return Err(InterpreterError::new(
+                        "Only one start symbol allowed!",
+                        SyntaxError,
+                    ));
                 }
                 Statement::ProgramEnd => {
                     break;
@@ -79,7 +87,11 @@ impl Interpreter {
                 Statement::Let { name, value } => {
                     self.set_value_in_stack(name, value)?;
                 }
-                Statement::If { condition, consequence, alternative } => {
+                Statement::If {
+                    condition,
+                    consequence,
+                    alternative,
+                } => {
                     let condition_truth_val = self.evaluate_expression(condition)?;
                     if condition_truth_val == Literal::BoolLiteral(true) {
                         let mut consequence = consequence.clone();
@@ -89,8 +101,7 @@ impl Interpreter {
                         self.run_code(Program {
                             statements: consequence,
                         })?;
-                    }
-                    else if let Some(statements) = alternative {
+                    } else if let Some(statements) = alternative {
                         let mut consequence = statements.clone();
                         consequence.insert(0, Statement::ProgramStart);
                         consequence.push(Statement::ProgramEnd);
@@ -100,22 +111,18 @@ impl Interpreter {
                         })?;
                     }
                 }
-                Statement::While { condition, body} => {
-                    loop {
-                        let condition_expr = self.evaluate_expression(condition)?;
-                        if condition_expr != Literal::BoolLiteral(true) {
-                            break;
-                        }
-
-                        let mut body = body.clone();
-                        body.insert(0, Statement::ProgramStart);
-                        body.push(Statement::ProgramEnd);
-
-                        self.run_code(Program {
-                            statements: body,
-                        })?;
+                Statement::While { condition, body } => loop {
+                    let condition_expr = self.evaluate_expression(condition)?;
+                    if condition_expr != Literal::BoolLiteral(true) {
+                        break;
                     }
-                }
+
+                    let mut body = body.clone();
+                    body.insert(0, Statement::ProgramStart);
+                    body.push(Statement::ProgramEnd);
+
+                    self.run_code(Program { statements: body })?;
+                },
                 Statement::Print(expr) => {
                     let value = self.evaluate_expression(expr)?;
                     if self.is_on_console {
@@ -130,8 +137,7 @@ impl Interpreter {
                                 println!("{}", str);
                             }
                         }
-                    }
-                    else {
+                    } else {
                         match value {
                             Literal::Number(num) => {
                                 self.output.push_str(&num.to_string());
@@ -155,7 +161,10 @@ impl Interpreter {
         Ok(self.output.clone())
     }
 
-    fn evaluate_expression(&mut self, expression: &Expression) -> Result<Literal, InterpreterError> {
+    fn evaluate_expression(
+        &mut self,
+        expression: &Expression,
+    ) -> Result<Literal, InterpreterError> {
         match expression {
             Expression::IdentifierExpr(ident) => self.get_value_of(ident),
             Expression::LiteralExpr(literal) => Ok(literal.clone()),
@@ -167,7 +176,7 @@ impl Interpreter {
 
     fn take_input_from_stdin(&mut self) -> Result<Literal, InterpreterError> {
         // TODO: Implement taking input from user, with possible account for string based input!
-        let mut value= String::new();
+        let mut value = String::new();
         if self.input.is_empty() && self.is_on_console {
             std::io::stdin()
                 .read_line(&mut value)
@@ -175,21 +184,33 @@ impl Interpreter {
 
             let value: f64 = match value.trim().parse() {
                 Ok(num) => num,
-                Err(_) => return Err(InterpreterError::new("Expected numeral types as input only!", InterpreterErrorType::InvalidInputError)),
+                Err(_) => {
+                    return Err(InterpreterError::new(
+                        "Expected numeral types as input only!",
+                        InterpreterErrorType::InvalidInputError,
+                    ))
+                }
             };
 
             Ok(Literal::Number(value))
-        }
-        else {
+        } else {
             let mut value = self.input.split_whitespace().collect::<Vec<&str>>();
 
             if value.is_empty() {
-                return Err(InterpreterError::new("Input Stack is empty!", InterpreterErrorType::EmptyCustomInputStack));
+                return Err(InterpreterError::new(
+                    "Input Stack is empty!",
+                    InterpreterErrorType::EmptyCustomInputStack,
+                ));
             }
 
             let num_value: f64 = match value[0].trim().parse() {
                 Ok(num) => num,
-                Err(_) => return Err(InterpreterError::new("Expected numeral types as input only!", InterpreterErrorType::InvalidInputError)),
+                Err(_) => {
+                    return Err(InterpreterError::new(
+                        "Expected numeral types as input only!",
+                        InterpreterErrorType::InvalidInputError,
+                    ))
+                }
             };
             value.remove(0);
             self.input = value.join(" ");
@@ -201,7 +222,10 @@ impl Interpreter {
     fn get_value_of(&self, ident: &Ident) -> Result<Literal, InterpreterError> {
         match self.variable_stack.get(&ident.0) {
             Some(t) => Ok(Literal::Number(*t)),
-            None => Err(InterpreterError::new(&format!("Can't find definition of {}", ident.0), UndefinedVariable)),
+            None => Err(InterpreterError::new(
+                &format!("Can't find definition of {}", ident.0),
+                UndefinedVariable,
+            )),
         }
     }
 
@@ -218,7 +242,7 @@ impl Interpreter {
         }
         Err(InterpreterError::new(
             "Only Numeral data types can be stored in variables!",
-            IncompatibleDataType
+            IncompatibleDataType,
         ))
     }
 
@@ -237,7 +261,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Only numeral types allowed with unary addition!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Prefix::PrefixMinus => {
@@ -247,7 +271,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Only numeral types allowed with unary negation!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Prefix::Not => {
@@ -257,14 +281,14 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Only boolean types allowed with not!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
             };
         }
         Err(InterpreterError::new(
             "Issue parsing the prefix expression!",
-            DeadlyError
+            DeadlyError,
         ))
     }
     fn evaluate_infix_expression(
@@ -289,7 +313,7 @@ impl Interpreter {
                     }
                     Err(InterpreterError::new(
                         "Only numeral types allowed with addition!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::Minus => {
@@ -300,7 +324,7 @@ impl Interpreter {
                     }
                     Err(InterpreterError::new(
                         "Only numeral types allowed with subtraction!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::Multiply => {
@@ -311,21 +335,24 @@ impl Interpreter {
                     }
                     Err(InterpreterError::new(
                         "Only numeral types allowed with multiplication!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::Divide => {
                     if let Literal::Number(num_left) = left {
                         if let Literal::Number(num_right) = right {
                             if num_right == 0_f64 {
-                                return Err(InterpreterError::new("Can't divide by zero", DivisionByZero));
+                                return Err(InterpreterError::new(
+                                    "Can't divide by zero",
+                                    DivisionByZero,
+                                ));
                             }
-                            return Ok(Literal::Number(num_left + num_right));
+                            return Ok(Literal::Number(num_left / num_right));
                         }
                     }
                     Err(InterpreterError::new(
                         "Only numeral types allowed with division!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::Modulo => {
@@ -336,7 +363,7 @@ impl Interpreter {
                     }
                     Err(InterpreterError::new(
                         "Only numeral types allowed with modulus!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
 
@@ -361,7 +388,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Comparison with only homogeneous data types is allowed!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::NotEqual => {
@@ -385,7 +412,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Comparison with only homogeneous data types is allowed!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::GreaterThan => {
@@ -397,7 +424,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Comparison with only numeral data types is allowed!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::GreaterThanEqual => {
@@ -409,7 +436,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Comparison with only numeral data types is allowed!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::LessThan => {
@@ -421,7 +448,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Comparison with only numeral data types is allowed!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::LessThanEqual => {
@@ -433,7 +460,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Comparison with only numeral data types is allowed!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
 
@@ -446,7 +473,7 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Comparison with only boolean data types is allowed!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
                 Infix::LogicalOr => {
@@ -458,11 +485,14 @@ impl Interpreter {
 
                     Err(InterpreterError::new(
                         "Comparison with only boolean data types is allowed!",
-                        IncompatibleDataType
+                        IncompatibleDataType,
                     ))
                 }
             };
         }
-        Err(InterpreterError::new("Issue parsing the infix expression!", DeadlyError))
+        Err(InterpreterError::new(
+            "Issue parsing the infix expression!",
+            DeadlyError,
+        ))
     }
 }
