@@ -7,7 +7,7 @@ pub struct Interpreter {
     output: String,
     variable_stack: HashMap<String, f64>,
     input: String,
-    allow_input_from_console: bool
+    is_on_console: bool
 }
 
 #[derive(Debug)]
@@ -53,12 +53,12 @@ impl Default for Interpreter {
 
 impl Interpreter {
 
-    pub fn new(input: &str, allow_input_from_console: bool) -> Self {
+    pub fn new(input: &str, is_on_console: bool) -> Self {
         Self {
             output: "".to_string(),
             variable_stack: Default::default(),
             input: input.to_string(),
-            allow_input_from_console
+            is_on_console
         }
     }
     pub fn run_code(&mut self, program_ast: Program) -> Result<String, InterpreterError> {
@@ -118,18 +118,33 @@ impl Interpreter {
                 }
                 Statement::Print(expr) => {
                     let value = self.evaluate_expression(expr)?;
-                    match value {
-                        Literal::Number(num) => {
-                            self.output.push_str(&num.to_string());
-                        }
-                        Literal::BoolLiteral(bool) => {
-                            self.output.push_str(&bool.to_string());
-                        }
-                        Literal::StringLiteral(str) => {
-                            self.output.push_str(&str);
+                    if self.is_on_console {
+                        match value {
+                            Literal::Number(num) => {
+                                println!("{}", num);
+                            }
+                            Literal::BoolLiteral(bool) => {
+                                println!("{}", bool);
+                            }
+                            Literal::StringLiteral(str) => {
+                                println!("{}", str);
+                            }
                         }
                     }
-                    self.output.push('\n');
+                    else {
+                        match value {
+                            Literal::Number(num) => {
+                                self.output.push_str(&num.to_string());
+                            }
+                            Literal::BoolLiteral(bool) => {
+                                self.output.push_str(&bool.to_string());
+                            }
+                            Literal::StringLiteral(str) => {
+                                self.output.push_str(&str);
+                            }
+                        }
+                        self.output.push('\n');
+                    }
                 }
                 Statement::Expression(expr) => {
                     self.evaluate_expression(expr)?;
@@ -153,7 +168,7 @@ impl Interpreter {
     fn take_input_from_stdin(&mut self) -> Result<Literal, InterpreterError> {
         // TODO: Implement taking input from user, with possible account for string based input!
         let mut value= String::new();
-        if self.input.is_empty() && self.allow_input_from_console {
+        if self.input.is_empty() && self.is_on_console {
             std::io::stdin()
                 .read_line(&mut value)
                 .expect("Failed to read line");

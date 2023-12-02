@@ -1,5 +1,6 @@
 PARAMPARA PRATISHTA ANUSHASHAN
 A BOLE TOH 10
+PRINT BASANTI PRINT "Enter n"
 @Generates decreasing natural numbers from n to 1
 A BOLE TOH INPUT LE LE RE BABA
 JAB TAK HAI JAAN A < 20 && A > 0 TAB TAK
