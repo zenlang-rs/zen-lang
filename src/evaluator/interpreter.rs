@@ -1,8 +1,11 @@
-use crate::evaluator::interpreter::InterpreterErrorType::{DeadlyError, DivisionByZero, EmptyCustomInputStack, IncompatibleDataType, InvalidInputError, MissingStartSymbol, SyntaxError, UndefinedVariable, UnknownParserError};
+use crate::evaluator::interpreter::InterpreterErrorType::{
+    DeadlyError, DivisionByZero, EmptyCustomInputStack, IncompatibleDataType, InvalidInputError,
+    MissingStartSymbol, SyntaxError, UndefinedVariable, UnknownParserError,
+};
 use crate::parser::ast::{Expression, Ident, Infix, Literal, Prefix, Program, Statement};
+use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::fmt;
-use lazy_static::lazy_static;
 
 pub struct Interpreter {
     output: String,
@@ -24,18 +27,26 @@ pub enum InterpreterErrorType {
     UnknownParserError,
 }
 
-
 lazy_static! {
     static ref ERROR_MESSAGES: HashMap<InterpreterErrorType, &'static str> = {
         let mut m = HashMap::new();
-        m.insert(SyntaxError, "Dost, your code is like a puzzle I can't solve. 'Mere pass bhi syntax hai!'");
+        m.insert(
+            SyntaxError,
+            "Dost, your code is like a puzzle I can't solve. 'Mere pass bhi syntax hai!'",
+        );
         m.insert(MissingStartSymbol, "'PARAMPARA PRATISHTA ANUSHASHAN' missing! 'Rishte mein toh hum tumhare baap lagte hain, naam hai start symbol.'");
         m.insert(UndefinedVariable, "Undefined variable");
         m.insert(DivisionByZero, "Division by zero? 'Ye zero hai, ye divide karne ka sign hai, aur ye divide by zero ka darr.'");
-        m.insert(IncompatibleDataType, "Incompatible data types! 'Ek chutki datatype ki keemat, tum kya jaano Ramesh babu.'");
+        m.insert(
+            IncompatibleDataType,
+            "Incompatible data types! 'Ek chutki datatype ki keemat, tum kya jaano Ramesh babu.'",
+        );
         m.insert(DeadlyError, "Oh no! Something went really wrong. 'Babuji ne kaha ERROR chhod do, sab ne kaha ERROR chhod do, lekin kisi ne yeh nahi bataya ki error kaise chhodte hain.'");
         m.insert(InvalidInputError, "Expected numeral types as input only! 'Number chahiye, number! Number k alawa kuch nhi.'");
-        m.insert(EmptyCustomInputStack, "Empty input stack! 'Uncle Ji, Uncle Ji, thoda data deejiye.'");
+        m.insert(
+            EmptyCustomInputStack,
+            "Empty input stack! 'Uncle Ji, Uncle Ji, thoda data deejiye.'",
+        );
         m.insert(UnknownParserError, "Parsing error due to invalid syntax ! 'Mogambo dukhi hua... kyunki kuch toh gadbad hai ??'");
         m
     };

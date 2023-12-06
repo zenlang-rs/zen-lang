@@ -28,9 +28,7 @@ pub fn run_program(
     if !r.is_empty()
         && (result.statements.is_empty() || !result.statements.contains(&Statement::ProgramEnd))
     {
-        return Err(InterpreterError::new(
-            UnknownParserError,
-        ));
+        return Err(InterpreterError::new(UnknownParserError));
     }
 
     Interpreter::new(input, is_on_console).run_code(result)
