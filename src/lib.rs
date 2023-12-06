@@ -29,7 +29,6 @@ pub fn run_program(
         && (result.statements.is_empty() || !result.statements.contains(&Statement::ProgramEnd))
     {
         return Err(InterpreterError::new(
-            "Some error in parsing the language!",
             UnknownParserError,
         ));
     }
