@@ -1,11 +1,8 @@
-use phf::phf_map;
-
-use crate::evaluator::interpreter::InterpreterErrorType::{
-    DeadlyError, DivisionByZero, IncompatibleDataType, MissingStartSymbol, SyntaxError,
-    UndefinedVariable,
-};
+use crate::evaluator::interpreter::InterpreterErrorType::{DeadlyError, DivisionByZero, EmptyCustomInputStack, IncompatibleDataType, InvalidInputError, MissingStartSymbol, SyntaxError, UndefinedVariable, UnknownParserError};
 use crate::parser::ast::{Expression, Ident, Infix, Literal, Prefix, Program, Statement};
 use std::collections::HashMap;
+use std::fmt;
+use lazy_static::lazy_static;
 
 pub struct Interpreter {
     output: String,
@@ -27,48 +24,39 @@ pub enum InterpreterErrorType {
     UnknownParserError,
 }
 
-static ERROR_MESSAGES: phf::Map<&'static str, &'static str> = phf_map! {
-    "SyntaxError" => "Dost, your code is like a puzzle I can't solve. 'Mere pass bhi syntax hai!'",
-    "MissingStartSymbol" => "'PARAMPARA PRATISHTA ANUSHASHAN' missing! 'Rishte mein toh hum tumhare baap lagte hain, naam hai start symbol.'",
-    "UndefinedVariable" => "Undefined variable",
-    "DivisionByZero" => "Division by zero? 'Ye zero hai, ye divide karne ka sign hai, aur ye divide by zero ka darr.'",
-    "IncompatibleDataType" => "Incompatible data types! 'Ek chutki datatype ki keemat, tum kya jaano Ramesh babu.'",
-    "DeadlyError" => "Oh no! Something went really wrong. 'Babuji ne kaha ERROR chhod do, sab ne kaha ERROR chhod do, lekin kisi ne yeh nahi bataya ki error kaise chhodte hain.'",
-    "InvalidInputError" => "Expected numeral types as input only! 'Number chahiye, number! Number k alawa kuch nhi.'",
-    "EmptyCustomInputStack" => "Empty input stack! 'Uncle Ji, Uncle Ji, thoda data deejiye.'",
-    "UnknownParserError" => "Parsing error due to invalid syntax ! 'Mogambo dukhi hua... kyunki kuch toh gadbad hai ??'",
-};
+
+lazy_static! {
+    static ref ERROR_MESSAGES: HashMap<InterpreterErrorType, &'static str> = {
+        let mut m = HashMap::new();
+        m.insert(SyntaxError, "Dost, your code is like a puzzle I can't solve. 'Mere pass bhi syntax hai!'");
+        m.insert(MissingStartSymbol, "'PARAMPARA PRATISHTA ANUSHASHAN' missing! 'Rishte mein toh hum tumhare baap lagte hain, naam hai start symbol.'");
+        m.insert(UndefinedVariable, "Undefined variable");
+        m.insert(DivisionByZero, "Division by zero? 'Ye zero hai, ye divide karne ka sign hai, aur ye divide by zero ka darr.'");
+        m.insert(IncompatibleDataType, "Incompatible data types! 'Ek chutki datatype ki keemat, tum kya jaano Ramesh babu.'");
+        m.insert(DeadlyError, "Oh no! Something went really wrong. 'Babuji ne kaha ERROR chhod do, sab ne kaha ERROR chhod do, lekin kisi ne yeh nahi bataya ki error kaise chhodte hain.'");
+        m.insert(InvalidInputError, "Expected numeral types as input only! 'Number chahiye, number! Number k alawa kuch nhi.'");
+        m.insert(EmptyCustomInputStack, "Empty input stack! 'Uncle Ji, Uncle Ji, thoda data deejiye.'");
+        m.insert(UnknownParserError, "Parsing error due to invalid syntax ! 'Mogambo dukhi hua... kyunki kuch toh gadbad hai ??'");
+        m
+    };
+}
 #[derive(Debug)]
 pub struct InterpreterError {
     pub msg: String,
     pub error_type: InterpreterErrorType,
 }
 
-impl ToString for InterpreterErrorType {
-    // fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    //     write!(f, "{:?}", self)
-    //     // or, alternatively:
-    //     // fmt::Debug::fmt(self, f)
-    // }
-    fn to_string(&self) -> String {
-        match self {
-            InterpreterErrorType::SyntaxError => "SyntaxError",
-            InterpreterErrorType::MissingStartSymbol => "MissingStartSymbol",
-            InterpreterErrorType::UndefinedVariable => "UndefinedVariable",
-            InterpreterErrorType::DivisionByZero => "DivisionByZero",
-            InterpreterErrorType::IncompatibleDataType => "IncompatibleDataType",
-            InterpreterErrorType::DeadlyError => "DeadlyError",
-            InterpreterErrorType::InvalidInputError => "InvalidInputError",
-            InterpreterErrorType::EmptyCustomInputStack => "EmptyCustomInputStack",
-            InterpreterErrorType::UnknownParserError => "UnknownParserError",
-        }
-        .to_string()
+impl fmt::Display for InterpreterErrorType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+        // or, alternatively:
+        // fmt::Debug::fmt(self, f)
     }
 }
 
 impl InterpreterError {
     pub fn new(err_type: InterpreterErrorType) -> Self {
-        let msg = ERROR_MESSAGES[&err_type.to_string()];
+        let msg = ERROR_MESSAGES.get(&err_type).unwrap_or(&"Unknown Error");
         InterpreterError {
             msg: msg.to_string(),
             error_type: err_type,
@@ -81,7 +69,7 @@ impl InterpreterError {
         }
     }
     pub fn new_from_append_error(msg_append: &str, err_type: InterpreterErrorType) -> Self {
-        let msg = ERROR_MESSAGES[&err_type.to_string()];
+        let msg = ERROR_MESSAGES.get(&err_type).unwrap_or(&"Unknown Error");
         InterpreterError {
             msg: msg.to_string() + msg_append,
             error_type: err_type,
