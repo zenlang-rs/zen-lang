@@ -7,7 +7,6 @@ use nom::{error_position, IResult};
 use super::ast::*;
 use crate::lexer::token_type::TokenType;
 use crate::lexer::tokens::Tokens;
-use nom;
 use nom::bytes::complete::take;
 use nom::combinator::{map, opt, peek, verify};
 use nom::Err;

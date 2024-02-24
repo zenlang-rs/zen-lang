@@ -11,7 +11,7 @@ use nom::multi::many0;
 use nom::sequence::pair;
 use nom::sequence::{delimited, preceded};
 use nom::IResult;
-use nom::*;
+use nom::{branch, bytes, AsBytes};
 
 use crate::lexer::token_type::TokenType;
 

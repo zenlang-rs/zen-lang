@@ -1,4 +1,5 @@
 use zen::evaluator;
+use zen::evaluator::interpreter::InterpreterErrorType;
 use zen::lexer::lexer_util::Lexer;
 use zen::lexer::tokens::Tokens;
 use zen::parser::ast::Program;
@@ -210,4 +211,13 @@ fn test_evaluator_input_inside_while() {
             .trim_end(),
         expected_output
     );
+}
+
+#[test]
+fn max_iteration_exceeded() {
+    let input = "PARAMPARA PRATISHTA ANUSHASHAN JAB TAK HAI JAAN 1 == 1 TAB TAK PRINT BASANTI PRINT \"Hello\"\n JAHAN KHATAM TATA BYE BYE".as_bytes();
+
+    assert!(evaluator::interpreter::Interpreter::new("", false)
+        .run_code(assert_input_with_program(input))
+        .is_err_and(|err| { err.error_type == InterpreterErrorType::MaxLoopsExceeded }));
 }

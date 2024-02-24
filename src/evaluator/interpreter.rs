@@ -1,6 +1,7 @@
+use crate::evaluator::constants::MAX_ITER_COUNT;
 use crate::evaluator::interpreter::InterpreterErrorType::{
     DeadlyError, DivisionByZero, EmptyCustomInputStack, IncompatibleDataType, InvalidInputError,
-    MissingStartSymbol, SyntaxError, UndefinedVariable, UnknownParserError,
+    MaxLoopsExceeded, MissingStartSymbol, SyntaxError, UndefinedVariable, UnknownParserError,
 };
 use crate::parser::ast::{Expression, Ident, Infix, Literal, Prefix, Program, Statement};
 use lazy_static::lazy_static;
@@ -25,6 +26,7 @@ pub enum InterpreterErrorType {
     InvalidInputError,
     EmptyCustomInputStack,
     UnknownParserError,
+    MaxLoopsExceeded,
 }
 
 lazy_static! {
@@ -48,6 +50,10 @@ lazy_static! {
             "Empty input stack! 'Uncle Ji, Uncle Ji, thoda data deejiye.'",
         );
         m.insert(UnknownParserError, "Parsing error due to invalid syntax ! 'Mogambo dukhi hua... kyunki kuch toh gadbad hai ??'");
+        m.insert(
+            MaxLoopsExceeded,
+            "Maximum iterations exceeded! Arre bas bhi kro bhai!",
+        );
         m
     };
 }
@@ -148,18 +154,26 @@ impl Interpreter {
                         })?;
                     }
                 }
-                Statement::While { condition, body } => loop {
-                    let condition_expr = self.evaluate_expression(condition)?;
-                    if condition_expr != Literal::BoolLiteral(true) {
-                        break;
+                Statement::While { condition, body } => {
+                    let mut iter_count = 0;
+                    loop {
+                        let condition_expr = self.evaluate_expression(condition)?;
+                        if condition_expr != Literal::BoolLiteral(true) {
+                            break;
+                        }
+
+                        let mut body = body.clone();
+                        body.insert(0, Statement::ProgramStart);
+                        body.push(Statement::ProgramEnd);
+
+                        self.run_code(Program { statements: body })?;
+                        iter_count += 1;
+
+                        if iter_count > MAX_ITER_COUNT {
+                            return Err(InterpreterError::new(MaxLoopsExceeded));
+                        }
                     }
-
-                    let mut body = body.clone();
-                    body.insert(0, Statement::ProgramStart);
-                    body.push(Statement::ProgramEnd);
-
-                    self.run_code(Program { statements: body })?;
-                },
+                }
                 Statement::Print(expr) => {
                     let value = self.evaluate_expression(expr)?;
                     if self.is_on_console {
