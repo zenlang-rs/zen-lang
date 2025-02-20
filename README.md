@@ -7,7 +7,7 @@ Welcome to the Zen programming language compiler repository! Zen is a user-frien
 To install the Zen compiler, use the following `cargo` command:
 
 ```bash
-cargo install --git https://github.com/zenlang-rs/zen-lang.git
+cargo install --git https://github.com/zenlang-rs/compiler.git
 ```
 
 Make sure you have Rust and Cargo installed on your system. If not, you can install them by following the instructions on the [official Rust website](https://www.rust-lang.org/tools/install).
