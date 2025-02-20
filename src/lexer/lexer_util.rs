@@ -16,7 +16,7 @@ use nom::{branch, bytes, AsBytes};
 use crate::lexer::token_type::TokenType;
 
 macro_rules! syntax {
-    ($func_name: ident, $tag_string: literal, $output_token: expr) => {
+    ($func_name: ident, $tag_string: literal, $output_token: expr_2021) => {
         fn $func_name(s: &[u8]) -> IResult<&[u8], TokenType> {
             map(tag($tag_string), |_| $output_token)(s)
         }

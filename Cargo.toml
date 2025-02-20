@@ -1,7 +1,7 @@
 [package]
 name = "zen"
 version = "0.2.6"
-edition = "2021"
+edition = "2024"
 authors = ["rootCircle <dev.frolics@gmail.com>"]
 repository = "https://github.com/zenlang-rs/zen-lang"
 categories = ["development-tools", "command-line-utilities", "compilers"]

@@ -13,7 +13,7 @@ use nom::Err;
 
 use std::result::Result::*;
 macro_rules! tag_token (
-    ($func_name:ident, $tag: expr) => (
+    ($func_name:ident, $tag: expr_2021) => (
         fn $func_name(tokens: Tokens) -> IResult<Tokens, Tokens> {
             verify(take(1usize), |t: &Tokens| t.tok[0] == $tag)(tokens)
         }
@@ -94,13 +94,12 @@ fn parse_statement(input: Tokens) -> IResult<Tokens, Statement> {
         parse_expression_statement,
     ))(input)?;
 
-    let remaining_tokens = if let Ok((remaining_tokens, _)) =
-        opt(many0(tag_token(TokenType::EndOfStatement)))(remaining_tokens)
-    {
+    let remaining_tokens = match opt(many0(tag_token(TokenType::EndOfStatement)))(remaining_tokens)
+    { Ok((remaining_tokens, _)) => {
         remaining_tokens
-    } else {
+    } _ => {
         remaining_tokens
-    };
+    }};
 
     Ok((remaining_tokens, statement))
 }
